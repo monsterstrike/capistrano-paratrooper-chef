@@ -45,6 +45,7 @@ Capistrano::Configuration.instance.load do
     }
 
     # chef settings
+    set :chef_legacy_mode, false
     set :chef_roles_auto_discovery, false
     set :chef_verbose_logging, true
     set :chef_debug, false
@@ -235,7 +236,7 @@ Capistrano::Configuration.instance.load do
       desc "Run chef-solo"
       task :execute do
         logger.info "Now running chef-solo"
-        command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")}#{' -l debug' if fetch(:chef_debug)}"
+        command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")}#{' --legacy-mode' if fetch(:chef_legacy_mode)}#{' -l debug' if fetch(:chef_debug)}"
         if run_list.unique?
           sudo command
         else
@@ -249,7 +250,7 @@ Capistrano::Configuration.instance.load do
       desc "why-run chef-solo"
       task :execute_why_run do
         logger.info "Now running why-run chef-solo"
-        command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")} -l fatal --why-run"
+        command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")}#{' --legacy-mode' if fetch(:chef_legacy_mode)} -l fatal --why-run"
         if run_list.unique?
           sudo command
         else
