@@ -310,7 +310,8 @@ Capistrano::Configuration.instance.load do
       end
 
       def ensure_working_dir
-        run "rm -rf #{fetch(:chef_working_dir)} && mkdir -p #{fetch(:chef_working_dir)}"
+        sudo "rm -rf #{fetch(:chef_working_dir)}"
+        run "mkdir -p #{fetch(:chef_working_dir)}"
         sudo "mkdir -p #{fetch(:chef_cache_dir)}"
       end
 
