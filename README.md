@@ -113,7 +113,7 @@ Following options are available.
 
 * Settings for chef and paratrooper
 
-    * `:chef_version` - chef version. empty by default. use latest version by default.
+    * `:chef_version` - chef version. `latest` by default.
     * `:chef_environment` - environment setting. empty by default.
     * `:chef_roles_auto_discovery` - Enable "Chef roles Auto discovery". use `false` by default.
     * `:chef_verbose_logging`, - Enable verbose logging mode of `chef-solo`. use `true` by default.

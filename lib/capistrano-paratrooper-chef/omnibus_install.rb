@@ -19,14 +19,14 @@ Capistrano::Configuration.instance.load do
   namespace :paratrooper do
     namespace :chef do
       set :chef_solo_path, "/opt/chef/bin/chef-solo"
-
+      set :chef_version, "latest"
+      
       desc "Installs chef (by omnibus installer)"
       task :install_omnibus_chef do
-        chef_version_option = exists?(:chef_version) ? " -s -- -v #{fetch(:chef_version)}" : ""
         if capture("command -v curl || true").strip.empty?
-          run "wget -O - http://www.opscode.com/chef/install.sh | #{top.sudo if fetch(:chef_use_sudo)} bash#{chef_version_option}"
+          run "wget -O - http://www.opscode.com/chef/install.sh | #{top.sudo if fetch(:chef_use_sudo)} bash -s -- -v #{fetch(:chef_version)}"
         else
-          run "curl -L http://www.opscode.com/chef/install.sh | #{top.sudo if fetch(:chef_use_sudo)} bash#{chef_version_option}"
+          run "curl -L http://www.opscode.com/chef/install.sh | #{top.sudo if fetch(:chef_use_sudo)} bash -s -- -v #{fetch(:chef_version)}"
         end
       end
       after "deploy:setup", "paratrooper:chef:install_omnibus_chef"
