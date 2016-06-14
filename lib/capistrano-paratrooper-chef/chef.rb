@@ -45,6 +45,7 @@ Capistrano::Configuration.instance.load do
     }
 
     # chef settings
+    set :chef_legacy_mode, false
     set :chef_roles_auto_discovery, false
     set :chef_verbose_logging, true
     set :chef_debug, false
@@ -182,7 +183,17 @@ Capistrano::Configuration.instance.load do
     end
 
     namespace :chef do
-      task :default, :except => { :no_release => true } do
+      task :default do
+        before_execute
+        chef.execute
+      end
+
+      task :why_run do
+        before_execute
+        chef.execute_why_run
+      end
+
+      task :before_execute do
         run_list.discover
         run_list.ensure
         kitchen.ensure_cookbooks
@@ -190,10 +201,9 @@ Capistrano::Configuration.instance.load do
         kitchen.upload
         chef.generate_solo_rb
         chef.generate_solo_json
-        chef.execute
       end
 
-      task :solo, :except => { :no_release => true } do
+      task :solo do
         chef.default
       end
 
@@ -224,9 +234,23 @@ Capistrano::Configuration.instance.load do
       end
 
       desc "Run chef-solo"
-      task :execute, :except => { :no_release => true } do
+      task :execute do
         logger.info "Now running chef-solo"
-        command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")}#{' -l debug' if fetch(:chef_debug)}"
+        command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")}#{' --legacy-mode' if fetch(:chef_legacy_mode)}#{' -l debug' if fetch(:chef_debug)}"
+        if run_list.unique?
+          sudo command
+        else
+          parallel do |session|
+            session.when "options[:chef_attributes]['run_list'].size > 0",
+              "#{sudocmd} #{command}"
+          end
+        end
+      end
+
+      desc "why-run chef-solo"
+      task :execute_why_run do
+        logger.info "Now running why-run chef-solo"
+        command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")}#{' --legacy-mode' if fetch(:chef_legacy_mode)} -l fatal --why-run"
         if run_list.unique?
           sudo command
         else
@@ -291,7 +315,7 @@ Capistrano::Configuration.instance.load do
       end
 
       desc "Upload files in kitchen"
-      task :upload, :except => { :no_release => true } do
+      task :upload do
         berkshelf.fetch
         librarian_chef.fetch
 
