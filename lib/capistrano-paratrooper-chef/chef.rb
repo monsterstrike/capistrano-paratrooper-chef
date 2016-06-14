@@ -182,17 +182,17 @@ Capistrano::Configuration.instance.load do
     end
 
     namespace :chef do
-      task :default, :except => { :no_release => true } do
+      task :default do
         before_execute
         chef.execute
       end
 
-      task :why_run, :except => { :no_release => true } do
+      task :why_run do
         before_execute
         chef.execute_why_run
       end
 
-      task :before_execute, :except => { :no_release => true } do
+      task :before_execute do
         run_list.discover
         run_list.ensure
         kitchen.ensure_cookbooks
@@ -202,7 +202,7 @@ Capistrano::Configuration.instance.load do
         chef.generate_solo_json
       end
 
-      task :solo, :except => { :no_release => true } do
+      task :solo do
         chef.default
       end
 
@@ -234,7 +234,7 @@ Capistrano::Configuration.instance.load do
       end
 
       desc "Run chef-solo"
-      task :execute, :except => { :no_release => true } do
+      task :execute do
         logger.info "Now running chef-solo"
         command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")}#{' -l debug' if fetch(:chef_debug)}"
         if run_list.unique?
@@ -248,7 +248,7 @@ Capistrano::Configuration.instance.load do
       end
 
       desc "why-run chef-solo"
-      task :execute_why_run, :except => { :no_release => true } do
+      task :execute_why_run do
         logger.info "Now running why-run chef-solo"
         command = "#{chef_solo_path} -c #{remote_path("solo.rb")} -j #{remote_path("solo.json")} -l fatal --why-run"
         if run_list.unique?
@@ -315,7 +315,7 @@ Capistrano::Configuration.instance.load do
       end
 
       desc "Upload files in kitchen"
-      task :upload, :except => { :no_release => true } do
+      task :upload do
         berkshelf.fetch
         librarian_chef.fetch
 
