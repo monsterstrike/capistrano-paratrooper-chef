@@ -117,6 +117,7 @@ Following options are available.
     * `:chef_roles_auto_discovery` - Enable "Chef roles Auto discovery". use `false` by default.
     * `:chef_verbose_logging`, - Enable verbose logging mode of `chef-solo`. use `true` by default.
     * `:chef_debug` - Enable debug mode of `chef-solo`. use `false` by default.
+    * `:chef_legacy_mode` - Enable legacy mode of `chef-solo`. use `false` by default. In Chef 12.11.18 or later is recommended `true`.
 
 * Settings for directories
 
