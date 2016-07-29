@@ -217,7 +217,7 @@ Capistrano::Configuration.instance.load do
           environment_path File.join(root, #{kitchen.environment_path.inspect})
           data_bag_path File.join(root, #{kitchen.databags_path.inspect})
           verbose_logging #{fetch(:chef_verbose_logging)}
-          Ohai::Config[:plugin_path] << '/opt/chef/plugins'
+          ohai.plugin_path << '/opt/chef/plugins'
         CONF
         if File.exist?(kitchen.databag_secret_path)
           config += <<-CONF
