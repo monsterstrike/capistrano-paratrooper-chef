@@ -110,6 +110,7 @@ Following options are available.
     * `:chef_solo_path` - the path of `chef-solo` command. use `chef-solo` by default (search command from $PATH).
     * `:chef_working_dir` - the path where chef-kitchen should installed. use `$HOME/chef-solo` by default.
     * `:chef_cache_dir` - the path for caches. use `/var/chef/cache` by default.
+    * `:chef_scp_max_concurrency` - the value for scp concurrency. use `100` by default.
 
 * Settings for chef and paratrooper
 
