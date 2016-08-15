@@ -35,6 +35,7 @@ Capistrano::Configuration.instance.load do
     set :chef_databag_secret, "data_bag_key"
     set :chef_scp_max_concurrency, 100
     set :chef_download_cookbooks, true
+    set :chef_cookbooks_manage_tool, :discover
 
     # remote chef settings
     set :chef_solo_path, "chef-solo"
@@ -309,7 +310,15 @@ Capistrano::Configuration.instance.load do
 
       def ensure_cookbooks
         abort "No cookbooks found in #{fetch(:cookbooks_directory).inspect}" if kitchen.cookbooks_paths.empty?
-        abort "Multiple cookbook definitions found: Cheffile, Berksfile" if File.exist? 'Cheffile' and File.exist? 'Berksfile'
+
+        case fetch(:chef_cookbooks_manage_tool)
+        when :discover
+          abort "Multiple cookbook definitions found: Cheffile, Berksfile" if File.exist? 'Cheffile' and File.exist? 'Berksfile'
+        when :librarian_chef
+          abort "No cookbook definitions found: Cheffile" unless File.exist? 'Cheffile'
+        when :berkshelf
+          abort "No cookbook definitions found: Berksfile" unless File.exist? 'Berksfile'
+        end
       end
 
       def ensure_working_dir
@@ -321,8 +330,15 @@ Capistrano::Configuration.instance.load do
       task :upload, :max_hosts => fetch(:chef_scp_max_concurrency) do
 
         if fetch(:chef_download_cookbooks)
-          berkshelf.fetch
-          librarian_chef.fetch
+          case fetch(:chef_cookbooks_manage_tool)
+          when :discover
+            berkshelf.fetch
+            librarian_chef.fetch
+          when :librarian_chef
+            librarian_chef.fetch
+          when :berkshelf
+            berkshelf.fetch
+          end
         end
 
         stream = StringIO.new
