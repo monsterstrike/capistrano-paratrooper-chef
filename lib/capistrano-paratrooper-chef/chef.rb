@@ -34,6 +34,7 @@ Capistrano::Configuration.instance.load do
     set :chef_databags_path, "data_bags"
     set :chef_databag_secret, "data_bag_key"
     set :chef_scp_max_concurrency, 100
+    set :chef_download_cookbooks, true
 
     # remote chef settings
     set :chef_solo_path, "chef-solo"
@@ -318,8 +319,11 @@ Capistrano::Configuration.instance.load do
 
       desc "Upload files in kitchen"
       task :upload, :max_hosts => fetch(:chef_scp_max_concurrency) do
-        berkshelf.fetch
-        librarian_chef.fetch
+
+        if fetch(:chef_download_cookbooks)
+          berkshelf.fetch
+          librarian_chef.fetch
+        end
 
         stream = StringIO.new
         TarWriter.new(stream) do |writer|
