@@ -197,6 +197,7 @@ Capistrano::Configuration.instance.load do
       end
 
       task :before_execute do
+        chef.install_if_require
         run_list.discover
         run_list.ensure
         kitchen.ensure_cookbooks
@@ -204,6 +205,12 @@ Capistrano::Configuration.instance.load do
         kitchen.upload
         chef.generate_solo_rb
         chef.generate_solo_json
+      end
+
+      def install_if_require
+        run "which #{chef_solo_path}"
+      rescue
+        chef.install_omnibus_chef
       end
 
       task :solo do
