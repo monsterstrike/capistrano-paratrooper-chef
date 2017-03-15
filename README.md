@@ -52,7 +52,7 @@ To enable it, add following in your config/deploy.rb.
     require "capistrano-paratrooper-chef/omnibus_install"
 
 This recipe will install chef-solo using omnibus-installer during deploy:setup task.
-Even in the case of no_release option is enable, will install chef-solo.
+Even in the case of no_release option is enable, will install chef-solo. (Only if you use `omnibus_install`)
 
 Another way, you want to install chef-solo as gem package, use following lines.
 
