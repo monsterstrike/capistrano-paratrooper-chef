@@ -20,7 +20,7 @@ Capistrano::Configuration.instance.load do
     namespace :chef do
       set :chef_solo_path, "/opt/chef/bin/chef-solo"
       set :chef_version, "latest"
-      
+
       desc "Installs chef (by omnibus installer)"
       task :install_omnibus_chef do
         if capture("command -v curl || true").strip.empty?
@@ -29,7 +29,7 @@ Capistrano::Configuration.instance.load do
           run "curl -L http://www.opscode.com/chef/install.sh | #{top.sudo if fetch(:chef_use_sudo)} bash -s -- -v #{fetch(:chef_version)}"
         end
       end
-      after "deploy:setup", "paratrooper:chef:install_omnibus_chef"
+      before "deploy:setup", "paratrooper:chef:install_omnibus_chef"
     end
   end
 end

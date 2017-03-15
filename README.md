@@ -26,7 +26,7 @@ To setup paratrooper-chef for your application, add following in you config/depl
     # in "config/deploy.rb"
     require 'capistrano-paratrooper-chef'
 
-And then, put your chef-kitchen files to config/ directory. 
+And then, put your chef-kitchen files to config/ directory.
 by default, paratrooper-chef uses following files and directories.
 
 * config/Berksfile
@@ -52,6 +52,7 @@ To enable it, add following in your config/deploy.rb.
     require "capistrano-paratrooper-chef/omnibus_install"
 
 This recipe will install chef-solo using omnibus-installer during deploy:setup task.
+Even in the case of no_release option is enable, will install chef-solo. (Only if you use `omnibus_install`)
 
 Another way, you want to install chef-solo as gem package, use following lines.
 
@@ -126,7 +127,7 @@ Following options are available.
 * Settings for directories
 
     * `:chef_kitchen_path` - root directory of kitchen. use `config` by default.
-    * `:chef_default_solo_json_path` - default attribute file a.k.a solo.json. use `solo.json` by default. 
+    * `:chef_default_solo_json_path` - default attribute file a.k.a solo.json. use `solo.json` by default.
     * `:chef_cookbooks_path` - cookbooks directory (or list of directories). use `site-cookbooks` by default.
     * `:chef_vendor_cookbooks_path` - cookbooks directory for berkshelf/librarian. use `vendor/cookbooks` by default.
     * `:chef_nodes_path` - nodes directory. use `nodes` by default.
