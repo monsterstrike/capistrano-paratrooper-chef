@@ -36,6 +36,7 @@ Capistrano::Configuration.instance.load do
     set :chef_scp_max_concurrency, 100
     set :chef_download_cookbooks, true
     set :chef_cookbooks_manage_tool, :discover
+    set :chef_kitchen_tar_path, "/tmp/paratrooper-chef_kitchen.tar"
 
     # remote chef settings
     set :chef_solo_path, "chef-solo"
@@ -201,7 +202,8 @@ Capistrano::Configuration.instance.load do
         run_list.ensure
         kitchen.ensure_cookbooks
         kitchen.ensure_working_dir
-        kitchen.upload
+        kitchen.make_tar
+        kitchen.upload_tar
         chef.generate_solo_rb
         chef.generate_solo_json
       end
@@ -327,8 +329,19 @@ Capistrano::Configuration.instance.load do
         sudo "mkdir -p #{fetch(:chef_cache_dir)}"
       end
 
+      def make_tar
+        stream = File.open(fetch(:chef_kitchen_tar_path), "w")
+        TarWriter.new(stream) do |writer|
+          paths = [cookbooks_paths, roles_path, environment_path, databags_path, databag_secret_path]
+          kitchen_paths = paths.flatten.compact.select{|d| File.exists?(d)}
+          Find.find(*kitchen_paths) do |path|
+            writer.add(path)
+          end
+        end
+      end
+
       desc "Upload files in kitchen"
-      task :upload, :max_hosts => fetch(:chef_scp_max_concurrency) do
+      task :upload_tar, :max_hosts => fetch(:chef_scp_max_concurrency) do
 
         if fetch(:chef_download_cookbooks)
           case fetch(:chef_cookbooks_manage_tool)
@@ -342,17 +355,7 @@ Capistrano::Configuration.instance.load do
           end
         end
 
-        stream = StringIO.new
-        TarWriter.new(stream) do |writer|
-          paths = [cookbooks_paths, roles_path, environment_path, databags_path, databag_secret_path]
-          kitchen_paths = paths.flatten.compact.select{|d| File.exists?(d)}
-          Find.find(*kitchen_paths) do |path|
-            writer.add(path)
-          end
-        end
-
-        stream.seek(0)
-        put stream.read, remote_path("kitchen.tar"), :via => :scp
+        upload(fetch(:chef_kitchen_tar_path), remote_path("kitchen.tar"), via: :scp)
         run "cd #{fetch(:chef_working_dir)} && tar -xf kitchen.tar"
       end
     end
