@@ -16,6 +16,7 @@
 require "find"
 require "json"
 require "tempfile"
+require "shellwords"
 require "capistrano-paratrooper-chef/tar_writer"
 require "capistrano-paratrooper-chef/version"
 
@@ -53,6 +54,12 @@ Capistrano::Configuration.instance.load do
     set :chef_roles_auto_discovery, false
     set :chef_verbose_logging, true
     set :chef_debug, false
+
+    # aws settings
+    set :upload_kitchen_via_s3, false
+    set :chef_kitchen_s3_bucket, nil
+    set :chef_aws_access_key_id, nil
+    set :chef_aws_secret_access_key, nil
 
     def sudocmd
       envvars = fetch(:default_environment, {}).collect{|k, v| "#{k}=#{v}"}
@@ -355,8 +362,30 @@ Capistrano::Configuration.instance.load do
           end
         end
 
-        upload(fetch(:chef_kitchen_tar_path), remote_path("kitchen.tar"), via: :scp)
+        if upload_kitchen_via_s3
+          s3_filename = "s3://#{fetch(:chef_kitchen_s3_bucket)}/#{fetch(:stage)}/kitchen-#{Time.now.to_i}.tar"
+          run_locally s3_push_cmd(s3_filename)
+          run s3_pull_cmd(s3_filename)
+        else
+          upload(fetch(:chef_kitchen_tar_path), remote_path("kitchen.tar"), via: :scp)
+        end
         run "cd #{fetch(:chef_working_dir)} && tar -xf kitchen.tar"
+      end
+
+      def s3_push_cmd(s3_filename)
+        "#{awscli_env} aws s3 cp #{fetch(:chef_kitchen_tar_path).shellescape} #{s3_filename.shellescape}"
+      end
+
+      def s3_pull_cmd(s3_filename)
+        kitchen_path = remote_path("kitchen.tar")
+        "#{awscli_env} aws s3 cp #{s3_filename.shellescape} #{kitchen_path.shellescape}"
+      end
+
+      def awscli_env
+        [
+          "AWS_ACCESS_KEY_ID=#{fetch(:chef_aws_access_key_id).shellescape}",
+          "AWS_SECRET_ACCESS_KEY=#{fetch(:chef_aws_secret_access_key).shellescape}"
+        ].join(" ")
       end
     end
   end
